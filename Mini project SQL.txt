@@ -1,0 +1,557 @@
+
+MASKING NUMBERS
+=================
+select substr(9876543210,-3) from dual;
+select lpad(substr(9876543210,-3),10,'X') from dual;
+
+select substr(9876543210,3) from dual;
+select Rpad(substr(9876543210,3),10,'X') from dual;
+
+
+select substr('1234 1234 1234',1,4) from dual;
+select substr('1234 1234 1234',1,4)||' XXXX XXXX' from dual;
+select 'XXXX XXXX '||substr('1234 1234 1234',1,4) from dual;
+
+AC.NO
+12334557574
+1345676578696895
+13425435647
+1345436378
+
+SELECT SUBSTR(ACC_NO,-3) FROM ACCOUNT;
+574
+895
+647
+378
+SELECT LPAD(SUBSTR(ACC_NO,-3),LENGTH(ACC_NO),'X') FROM ACCOUNT;
+XXXXXXXXX574
+XXXXXXXXXXXXXX895
+XXXXXXXXX647
+XXXXXXXX378
+SELECT RPAD(SUBSTR(ACC_NO,1,3),LENGTH(ACC_NO),'X') FROM ACCOUNT;
+
+
+SELECT SUBSTR('1111 2222 3333 4444',1,4),SUBSTR('1111 2222 3333 4444'-4)
+FROM DUAL;
+SELECT SUBSTR('1111 2222 3333 4444',1,4)||' XXXX XXXX '||
+SUBSTR('1111 2222 3333 4444'-4) FROM DUAL;
+
+------------------------------------------------------------------------
+
+9999999999
+9X9X9X9X9X
+
+SELECT LEVEL FROM DUAL CONNECT BY LEVEL <=10;
+
+SELECT LEVEL LVL,SUBSTR(9999999999,LEVEL,1) NUM FROM DUAL;
+
+SELECT CASE WHEN MOD(LVL,2)=0 THEN 'X'
+ELSE NUM END FROM(SELECT LEVEL LVL,SUBSTR(9999999999,LEVEL,1) NUM FROM DUAL CONNECT BY LEVEL<=10);
+
+SELECT LISTAGG(CASE WHEN MOD(LVL,2)=0 THEN 'X'
+ELSE NUM END) WITHIN GROUP(ORDER BY LVL) 
+FROM(SELECT LEVEL LVL,SUBSTR(9999999999,LEVEL,1) NUM 
+FROM DUAL CONNECT BY LEVEL<=10);
+
+---------------------------------------------------------------------------------
+SQL PHONE SCREEN DISPLAY
+========================
+SATURDAY
+3:20
+SEPTEMPER 10
+68% --battery
+
+SELECT TO_CHAR(SYSDATE,'DAY) FROM DUAL;
+UNION ALL
+SELECT TO_CHAR(SYSDATE,'HH:MI') FROM DUAL;
+UNION ALL
+SELECT TO_CHAR(SYSDATE,'MONTH DD') FROM DUAL;
+UNION ALL
+SELECT PERCENTAGE||'%' FROM CHARGE_PERCENTAGE_TABLE
+WHERE PHONE=9876543210;
+
+------------------------------------------------------------------
+
+How to calculate these tow values in sql
+1,02,64,25,742
+94,38,62,917
+and i want sum and result is gamma seperation values
+
+select replace('1,02,64,25,742',',','') as count from dual;
+select replace('94,38,62,917',',','') as count from dual;
+
+select sum(count) from
+(select replace('1,02,64,25,742',',','') as count from dual
+union all
+select replace('94,38,62,917',',','') as count from dual) dual;
+
+select TO_CHAR(sum(count),'9,99,99,99,999') from
+(select replace('1,02,64,25,742',',','') as count from dual
+union all
+select replace('94,38,62,917',',','') as count from dual) dual;
+
+--------------------------------------------------------------------
+SQL ONLINE SHOPING DELIVERY CHARGES
+===================================
+
+CREATE TABLE ONLINE_SHOP(ORDER_ID VARCHAR2(50),VALUE NUMBER(10,2));
+
+insert into online_shop values('id12345',32);
+insert into online_shop values('id12345',162);
+insert into online_shop values('id12345',250);
+insert into online_shop values('id12345',254);
+insert into online_shop values('id12345',599.90);
+insert into online_shop values('id12345',600.50);
+commit;
+
+select * from online_shop;
+
+select b.*,case when value<250 then 50 
+--when value between 250 and 599 then 30
+when value<600 then 30
+else 0
+end as delivery charge
+from online_SHOP B;
+---------------------------------------------------------------------------
+
+create table table1(col1 number,col2 number,col3 number,col4 number);
+insert into table1 values(1,2,3,4);
+insert into table1 values(null,1,2,4);
+insert into table1 values(1,null,null,4);
+insert into table1 values(null,null,1,2);
+insert into table1 values(null,2,3,null);
+select * from table1;
+
+select which are the rows in value 1, but don't use OR condition?
+ex-1
+select * from table1 where col1=1
+union all
+select * from table1 where col2=1
+union all
+select * from table1 where col3=1
+union all
+select * from table1 where col4=1;
+ex-2
+select * from table1 where 1 in(col1,col2,col3,col4);
+ex-3
+select * from table1 where col1||col2||col3||col4 like '%1%';
+ex-4
+select * from table1 where instr(col1||col2||col3||col4,'1')>0;
+-----------------------------------------------------------------------
+Write SQL statement to select employees getting salary greater than average
+salary of the department_id that are working?
+ex-1 inlineview
+select * from employees a,(select department_id, trunc(avg(salary)) as avl_sal from employees
+group by department_id) b
+where a.department_id=b.department_id
+and a.salary>b.avl_sal;
+ex-2 correlated subquery-same result in the upper query
+select * from employees a where salary>(select avg(b.salary) from employees b 
+where a.department_id=b.department_id);
+ex-3 this is best one because explain plan less cost
+select * from (select employee_id,first_name,last_name,department_id,salary,avg(salary) over(partition 
+by department_id) as avg_sal from employees) where salary>avg_sal;
+-------------------------------------------------------------------------------
+Write SQL statement to select data from table1 that are not exits in table2 without using not keyword.
+
+create table table1(c1 varchar2(1);
+create table table2(c1 varchar2(1);
+insert into table1 values('A');
+insert into table1 values('B');
+insert into table1 values('C');
+insert into table1 values('D');
+insert into table1 values('E');
+
+insert into table1 values('A');
+insert into table1 values('C');
+insert into table1 values('E');
+insert into table1 values('G');
+RULE
+SELECT * FROM TABLE1 WHERE C1 NOT IN(SELECT * FROM TABLE2);
+EX-1
+SELECT * FROM TABLE1
+MINUS
+SELECT * FROM TABLE2;
+EX-2
+SELECT * FROM TABLE1
+LEFT OUTER JOIN TABLE2
+ON TABLE1.C1=TABLE2.C1
+WHERE TABLE2.C1 IS NULL;
+EX-3
+SELECT * FROM TABLE1 WHERE 1>(SELECT COUNT(*) FROM TABLE2 WHERE TABLE1.C1=TABLE2.C1);
+EX-4
+SELECT * FROM TABLE1 WHERE (SELECT COUNT(1) FROM TABLE2 WHERE TABLE1.C1=TABLE2.C1)=0;
+----------------------------------------------------------------------------------
+
+CREATE TABLE CRICKET(MATCH_NO NUMBER,TEAM_A VARCHAR2(30),TEAM_B VARCHAR2(30),
+WINNER VARCHAR2(30));
+INSERT ALL
+INTO CRICKET VALUES(01,'WESTINDIES','SRILANKA','WESTINDIES')
+INTO CRICKET VALUES(02,'INDIA','SRILANKA','INDIA')
+INTO CRICKET VALUES(03,'AUSTRALIA','SRILANKA','AUSTRALIA')
+INTO CRICKET VALUES(04,'WESTINDIES','SRILANKA','SRILANKA')
+INTO CRICKET VALUES(05,'AUSTRALIA','INDIA','AUSTRALIA')
+INTO CRICKET VALUES(06,'WESTINDIES','SRILANKA','WESTINDIES')
+INTO CRICKET VALUES(07,'INDIA','WESTINDIES','WESTINDIES')
+INTO CRICKET VALUES(08,'WESTINDIES','AUSTRALIA','AUSTRALIA')
+INTO CRICKET VALUES(09,'WESTINDIES','INDIA','INDIA')
+INTO CRICKET VALUES(10,'AUSTRALIA','WESTINDIES','WESTINDIES')
+INTO CRICKET VALUES(11,'WESTINDIES','SRILANKA','WESTINDIES')
+INTO CRICKET VALUES(12,'INDIA','AUSTRALIA','INDIA')
+INTO CRICKET VALUES(13,'SRILANKA','NEWZEALAND','SRILANKA')
+INTO CRICKET VALUES(14,'NEWZEALAND','INDIA','INDIA')
+SELECT * FROM DUAL;
+
+EX-1
+SELECT TEAM_A FROM CRICKET
+UNION ALL
+SELECT TEAM_B FROM CRICKET;
+
+SELECT TEAM_NAME,COUNT(*) FROM (SELECT TEAM_A TEAM_NAME FROM CRICKET
+UNION ALL
+SELECT TEAM_B FROM CRICKET)
+GROUP BY TEAM_NAME;
+
+SELECT WINNER,COUNT(*) COUNT FROM CRICKET
+GROUP BY WINNER
+
+WITH TOTAL_MATCHS AS (SELECT TEAM_NAME,COUNT(*) COUNT FROM (SELECT TEAM_A TEAM_NAME FROM CRICKET
+UNION ALL
+SELECT TEAM_B FROM CRICKET)
+GROUP BY TEAM_NAME),
+WIN_MATCHS AS (SELECT WINNER,COUNT(*) COUNT FROM CRICKET
+GROUP BY WINNER)
+SELECT TEAM_NAME,TOTAL_MATCHS.COUNT,NVL(WIN_MATCHS.COUNT,0) TOTAL_WIN,
+TOTAL_MATCHS.COUNT-NVL(WIN_MATCHS.COUNT,0) LOSS FROM TOTAL_MATCHS FULL OUTER JOIN WIN_MATCHS
+ON TOTAL_MATCHS.TEAM_NAME=WIN_MATCHS.WINNER;
+---------------------------------------------------------------------------
+EX-2 Error
+SELECT MATCHES_PLAYED.TEAM_NMAE,NO_OF_MATCHES_PLAYED,
+NVL(NO_OF_MATCHES_WON,0) MATCHES_WON,NO_OF_MATCHES_PLAYED-
+NVL(NO_OF_MATCHES_WON,0) MATCHES_LOST
+FROM (SELECT TEAM_NAME,SUM(COUNT) NO_OF_MATCHES_PLAYED FROM (SELECT
+TEAM_A TEAM_NAME,COUNT(*) COUNT FROM CRICKET GROUP BY TEAM_A
+UNION ALL
+SELECT TEAM_B,COUNT(*) FROM CRICKET GROUP BY TEAM_B)
+GROUP BY TEAM_NAME) AS MATCHES_PLAYED,
+(SELECT WINNER TEAM_NAME,COUNT(*) NO_OF_MATCHES_WON FROM CRICKET
+GROUP BY WINNER)MATCHES_WON WHERE MATCHES_PLAYED.TEAM_NAME=MATCHES_WON.TEAN_NAME(+);
+-----------------------------------------------------------------------------------
+GENERATE SERIAL NUMBER UPTO 10
+EX-1
+SELECT ROWNUM FROM EMPLOYEES WHERE ROWNUM<=10;
+SELECT ROWNUM FROM ALL_TABLES WHERE ROWNUM<=10;
+EX-2
+SELECT LEVEL FROM DUAL CONNECT BY LEVEL<=10;
+EX-3
+CREATE OR REPLACE FUNCTION fn_get_num(p_count number) return sys.odcinumberlist
+as
+i_num_tab sys.odcinumberlist:=sys.odcinumberlist();
+begin
+for i in 1..p_count LOOP
+I_NUM_TAB.EXTEND;
+I_NUM_TAB(I_NUM_TAB.LAST):=I;
+END LOOP;
+RETURN I_NUM_TAB;
+END;
+/
+SELECT * FROM TABLE(fn_get_num(10));
+select fn_get_num(10) from dual;--->harizondal output
+ex-4-->group by cube
+select rownum from ( select 1 num from dual
+group by cube(1,2,3,4)) where rownum<=10;
+-----------------------------------------------------------------------
+Different way of WELCOME
+select rownum,
+substr(s,rownum,1) output1,
+substr(s,rownum*-1,1) output2,
+substr(s,1,rownum) output3,
+substr(s,rownum) output4,
+rpad(' ',rownum,' ')||substr(s,rownum) output5,
+rpad(' ',length(s)+1-rownum,' ')||substr(s,1,rownum) output6
+from dual,(select 'WELCOME' s from dual)
+connect by level<=length(s);
+
+select substr('WELCOME',LEVEL,1) OP,
+substr('WELCOME',LEVEL*-1,1) UP,
+substr('WELCOME',1,LEVEL) OP1,
+RPAD(substr('WELCOME',LEVEL),LENGTH('WELCOME'),'*') OP2,
+substr('WELCOME',LEVEL,7) UP1,
+LPAD(substr('WELCOME',LEVEL,7),LENGTH('WELCOME'),'@') UP2 
+FROM DUAL CONNECT BY LEVEL<=LENGTH('WELCOME');
+
+select rpad('*',rownum,'*') as output1,
+rpad('*',11-rownum,'*') as output2,
+rpad(' ',rownum,' ')||rpad('*',11-rownum,'*') as output3,
+rpad('',11-rownum,'')||rpad('*',rownum,'*') as output4,
+rpad('',rownum,'')||rpad('*',rownum,'*') as output5,
+rpad('',11-rownum,'')||rpad('',11-rownum,'')||rpad('*',rownum,'*') as output6
+from dual connect by level<=10;
+
+select rpad('*',rownum,'*') as output1,
+rpad('*',11-rownum,'*') as output2,
+rpad(' ',rownum,' ')||rpad('*',11-rownum,'*') as output3,
+rpad('',11-rownum,'')||rpad('*',rownum,'*') as output4,
+rpad('',rownum,'')||rpad('*',rownum,'*') as output5,
+rpad('',11-rownum,'')||rpad('',11-rownum,'')||rpad('*',rownum,'*') as output6
+from dual connect by level<=10;
+--------------------------------------------------------------------------
+write a sql to extract FIRST-NAME,LAST_NMAE AND DOMAINE_NMAE-Email
+VASANTH.KUMAR.A@GAIL.COM
+  
+with d as (select 'vasanth.kumar.a@gmail.com' v from dual),
+ds as (select substr(v,1,instr(v,'@')-1) n,
+substr(v,instr(v,'@')+1) d
+from d)
+select * from ds;
+
+with d as (select 'vasanth.kumar.a@gmail.com' v from dual),
+ds as (select substr(v,1,instr(v,'@')-1) n,
+substr(v,instr(v,'@')+1) d
+from d)
+select substr(n,1,instr(n,'.',1,1)-1) first_name,
+substr(n,instr(n,'.',1,1)+1,instr(n,'.',1,2)-instr(n,'.',1,1)-1) middle_name,
+substr(n,instr(n,'.',1,2)+1) last_name,
+d domain_name
+from ds;
+=================================
+create table tab1(mail_id varchar2(50));
+
+insert into tab1 values('siva.kumar.m@gmail.com');
+insert into tab1 values('jeevan.anand.k@yahoo.com');
+insert into tab1 values('ravi.krishna.a@outlook.com');
+
+select mail_id m, substr(mail_id,1,instr(mail_id,'.',1,1)-1) n,
+substr(mail_id,instr(mail_id,'@')) d
+from tab1
+
+with ds as (select mail_id m, 
+substr(mail_id,1,instr(mail_id,'@')-1) n,
+substr(mail_id,instr(mail_id,'@')+1) d
+from tab1)
+select substr(n,1,instr(n,'.',1,1)-1) first_name,
+substr(n,instr(n,'.')+1,instr(n,'.',1,2)-instr(n,'.',1,1)-1) middle_name,
+substr(n,instr(n,'.',1,2)+1) last_name
+from ds;
+======================================
+CREATE OR REPLACE FUNCTION GET_FIRST_NAME(PIN_MAIL_ID VARCHAR2) RETURN VARCHAR2
+AS
+LV_RET_VAL VARCHAR2(100);
+BEGIN
+SELECT SUBSTR(PIN_MAIL_ID,1,INSTR(PIN_MAIL_ID,'.')-1) INTO LV_RET_VAL
+FROM DUAL;
+RETURN LV_RET_VAL;
+END;
+/
+SELECT GET_FIRST_NAME('A.B.C@GMAIL.COM') FROM DUAL;
+CREATE OR REPLACE FUNCTION GET_MIDDLE_NAME(PIN_MAIL_ID VARCHAR2) RETURN VARCHAR2
+AS
+LV_RET_VAL VARCHAR2(100);
+BEGIN
+SELECT SUBSTR(PIN_MAIL_ID,INSTR(PIN_MAIL_ID,'.')+1,INSTR(PIN_MAIL_ID,'.',1,2)-INSTR
+(PIN_MAIL_ID,'.',1,1)-1) INTO LV_RET_VAL
+FROM DUAL;
+RETURN LV_RET_VAL;
+END;
+/
+SELECT GET_MIDDLE_NAME('A.B.C@GMAIL.COM') FROM DUAL;
+CREATE OR REPLACE FUNCTION GET_LAST_NAME(PIN_MAIL_ID VARCHAR2) RETURN VARCHAR2
+AS
+LV_RET_VAL VARCHAR2(100);
+BEGIN
+SELECT SUBSTR(PIN_MAIL_ID,INSTR(PIN_MAIL_ID,'.'1,2)+1) INTO LV_RET_VAL
+FROM DUAL;
+RETURN LV_RET_VAL;
+END;
+/
+---------------------------------------------------------------------------------------------------
+SQL ADDRESS ARRANGEMENT EXAMPLE
+================================
+
+
+CREATE TABLE ADDRESS(NAME VARCHAR2(20),STREET VARCHAR2(20),
+CITY VARCHAR2(20),STATE VARCHAR2(30),PINCODE NUMBER);
+
+INSERT INTO ADDRESS(NAME,STREET,CITY,STATE,PINCODE) VALUES(
+'ABC','A STREET','CHENNAI','TAMILNADU',600001);
+INSERT INTO ADDRESS(NAME,STREET,CITY,STATE,PINCODE) VALUES(
+'ABC','A STREET','HYDERABAD','TELANGANA',400001);
+INSERT INTO ADDRESS(NAME,STREET,STATE,PINCODE) VALUES(
+'ABC','A STREET','KERALA',500001);
+INSERT INTO ADDRESS(NAME,STREET,STATE) VALUES(
+'ABC','A STREET','ANDRA');
+
+NVL
+---
+SELECT NVL(NULL,'ABC') FROM DUAL;
+SELECT NVL(DEF,'ABC') FROM DUAL;
+
+NVL2
+----
+SELECT NVL2(NULL,'PPP','CCC') FROM DUAL;
+SELECT NVL2('ABC','PPP','CCC') FROM DUAL;
+
+NOW
+----
+SELECT NAME,STREET||','||CITY||','||STATE||'-'||PINCODE FROM ADDRESS;
+
+SELECT NAME,NVL2(STREET,STREET,NULL)||
+NVL2(CITY,','||CITY,NULL)||NVL2(STATE,','||STATE,NULL)||
+NVL2(PINCODE,'-'||PINCODE,NULL) FROM ADDRESS;
+------------------------------------------------------------------------------------
+SQL DROP DOWN YEAR EXAMPLE
+===========================
+
+ Requirement:- 	DUAL
+		CONNECT BY LEVEL
+		SYSDATE
+		TO_CHAR
+
+DUAL
+-----
+SELECT 2+4 FROM DUAL;
+SELECT'RAJ' FROM DUAL;
+
+CONNECT BY LEVEL
+-----------------
+SELECT LEVEL FROM DUAL CONNECT BY <=10;
+
+SYSDATE
+--------
+SELECT SYSDATE FROM DUAL;
+
+TO_CHAR
+--------
+SELECT TO_CHAR(SYSDATE,'YYYY') FROM DUAL;
+
+RESULT
+0------
+
+SELECT TO_CHAR(SYSDATE,'YYYY')-LEVEL FROM DUAL
+CONNECT BY LEVEL<=6;
+
+SELECT TO_CHAR(SYSDATE,'YYYY')-LEVEL+1 FROM DUAL
+CONNECT BY LEVEL<=6;
+
+if you want 10 year just
+
+SELECT TO_CHAR(SYSDATE,'YYYY')-LEVEL+1 FROM DUAL
+CONNECT BY LEVEL<=11;
+----------------------------------------------------------------------------------------------------
+SQL MONTH ORDER EXAMPLE
+========================
+I want month continiusly?
+
+DUAL
+======
+Available in Oracle database only.
+It has one column(dummy) and one value(x)
+It is data type varchar(1)
+
+select * from dual
+dummy
+X
+
+SYSDATE
+--------
+SELECT SYSDATE FROM DUAL;
+date
+SELECT TRUNC(SYSDATE,'YEAR') FROM DUAL;
+
+TO_CHAR
+--------
+SELECT TO_CHAR(SYSDATE,'MON') FROM DUAL;
+jan
+
+ADD_MONTHS
+----------
+SELECT SYSDATE,ADD_MONTHS(SYSDATE,1) FROM DUAL;
+current date and next month date
+
+CONNECT BY LEVEL
+------------------
+SELECT LEVEL FROM DUAL CONNECT BY LEVEL<=5;
+1
+2
+3
+4
+5
+
+RESULT
+-------
+SELECT
+TO_CHAR(
+ADD_MONTHS(TRUNC(SYSDATE,'YEAR'),LEVEL-1),'MON')
+FROM DUAL
+CONNECT BY LEVEL<=12;
+-----------------------------------------------------------------------------------------------------------
+SQL OTP & CAPTCHA EXAMPLE
+=========================
+How to generate OTP and CAPTCHA?
+
+--Pick one number between 1 to 100 umbers
+SELECT DBMS_RANDOM.VALUE(1,100) FROM DUAl;
+SELECT trunc(DBMS_RANDOM.VALUE(1,100)) FROM DUAl;
+
+OTP GENERATION IN ORACLE
+--------------------------
+123456
+100000
+999999
+
+SELECT DBMS_RANDOM.VALUE(100000,999999) FROM DUAL;
+SELECT TRUNC(DBMS_RANDOM.VALUE(100000,999999)) FROM DUAL;
+
+CAPTCHA GENERATION
+--------------------
+DBMS_RANDOM.STRING(CHAR,NUMBER)
+SELECT DBMS_RANDOM.STRING('U',6) FROM DUAL;
+SELECT DBMS_RANDOM.STRING('X',6) FROM DUAL;
+
+U-UPPER CASE CHARACTERS
+L-LOWER CASE CHARACTERS
+A-MIXED CASE CHARACTERS
+X-APLHA NUMERIC
+P-ALPLHA NUMERIC AND SPECIAL CHARACTERS
+
+------------------------------------------------------------------
+TASK/REQUIREMENT-plsql?
+-----------------
+Create package-OTP-AUTHENTICATION
+OTP_Generation function/procedure
+select trunc(dbms_random.value(100000,999999) into otp from dual;
+OTP_Validation Function/procedure
+generated_value=user_entered_value
+Time check: 60 seconds
+------------------------------------------------------------------------------
+SQL SURVAY NUMBER EXAMPLE 2
+============================
+Using LISTAGG 11G version
+
+CREATE TABLE SURVEY_LIST(STATE_NAME VARCHAR2(20),DISTRICT_NAME VARCHAR2(30),
+FARMER_NAME VARCHAR2(20),SURVAY_NUMBER(20));
+
+INSERT INTO SURVEY_LIST VALUES('TAMILNADU','CHENNAI','RAJ','18-2');
+INSERT INTO SURVEY_LIST VALUES('TAMILNADU','CHENNAI','RAJ','88-1A');
+INSERT INTO SURVEY_LIST VALUES('TAMILNADU','CHENNAI','RAJ','20-2C');
+INSERT INTO SURVEY_LIST VALUES('TAMILNADU','THRUVALLUR','KUMAR','2-2A');
+INSERT INTO SURVEY_LIST VALUES('TAMILNADU','KANCHEPURAM','RAVI','9-7Y');
+
+COMMIT;
+
+select farmer_name,state_name,district_name,listagg(survey_number,',')within group
+(order by farmer_name) list_of_surveys from survey_list
+group by farmer_name,state_name,district_name;
+
+column
+p
+r
+a
+v	praveen
+e
+e
+n
+
+select listagg(column) within group(order by rownum) from table; 
+
+----------------------------------------------------------------------------------------------------------------
